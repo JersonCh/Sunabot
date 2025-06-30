@@ -1,0 +1,3 @@
+Flask==2.3.3
+llama-cpp-python==0.2.11
+gunicorn==21.2.0
