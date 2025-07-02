@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SUNATBOT - ChatBox SUNAT</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="chatbot-container">
+    <div class="welcome-section">
+      <div class="welcome-header">
+        <div class="bot-avatar">🤖</div>
+        <div class="welcome-text">
+          <h2>¡Hola! Soy SUNATBOT</h2>
+          <p>Tu asistente virtual especializado en SUNAT</p>
+        </div>
+      </div>
+      <div class="help-question">
+        <h3>¿Sobre qué tema necesitas ayuda?</h3>
+      </div>
+      <div class="category-buttons">
+        <button class="category-btn" onclick="showCategoryQuestions('RUC')">
+          📋<br>RUC
+        </button>
+        <button class="category-btn" onclick="showCategoryQuestions('Declaraciones')">
+          📊<br>Declaraciones
+        </button>
+        <button class="category-btn" onclick="showCategoryQuestions('Facturación')">
+          🧾<br>Facturación
+        </button>
+        <button class="category-btn" onclick="showCategoryQuestions('Clave SOL')">
+          🔑<br>Clave SOL
+        </button>
+        <button class="category-btn" onclick="showCategoryQuestions('Regímenes')">
+          ⚖️<br>Regímenes
+        </button>
+        <button class="category-btn" onclick="showCategoryQuestions('Otros')">
+          ❓<br>Otros
+        </button>
+      </div>
+    </div>
+    
+    <div class="chatbot-messages" id="chatbox">
+      <div class="chat-content" id="chat-content">
+      </div>
+    </div>
+    <div class="chatbot-input">
+      <input type="text" id="userInput" placeholder="Escribe tu consulta...">
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
