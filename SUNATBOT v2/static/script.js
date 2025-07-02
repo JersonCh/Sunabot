@@ -270,6 +270,143 @@ function getCleanTextFromMessage(messageContent) {
   return cleanText;
 }
 
+// Función principal para enviar mensajes directamente a Gemini
+function sendMessage() {
+  const input = document.getElementById("userInput");
+  const mensaje = input.value.trim();
+  
+  if (!mensaje) {
+    alert("Por favor, escribe tu consulta.");
+    return;
+  }
+  
+  // Guardar mensaje para retry
+  window.lastMessage = mensaje;
+  
+  const chatContent = document.getElementById("chat-content");
+  
+  // Mostrar mensaje del usuario
+  const userDiv = document.createElement("div");
+  userDiv.className = "message user";
+  userDiv.innerHTML = `
+    <div class="message-avatar">👤</div>
+    <div class="message-content">${mensaje}</div>
+  `;
+  chatContent.appendChild(userDiv);
+  
+  // Limpiar input
+  input.value = "";
+  
+  // Mostrar indicador de carga
+  const loadingDiv = document.createElement("div");
+  loadingDiv.className = "message bot loading";
+  loadingDiv.innerHTML = `
+    <div class="message-avatar">🤖</div>
+    <div class="message-content">
+      <div class="typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <span>SUNABOT está pensando...</span>
+    </div>
+  `;
+  chatContent.appendChild(loadingDiv);
+  
+  // Scroll automático
+  chatContent.scrollTop = chatContent.scrollHeight;
+  
+  // Enviar a Google Gemini via endpoint /chat_directo
+  fetch("/chat_directo", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mensaje: mensaje })
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Remover indicador de carga
+    loadingDiv.remove();
+    
+    // Procesar respuesta con markdown
+    const processedResponse = processMarkdown(data.respuesta);
+    
+    // Crear mensaje de respuesta
+    const botDiv = document.createElement("div");
+    botDiv.className = "message bot";
+    botDiv.innerHTML = `
+      <div class="message-avatar">🤖</div>
+      <div class="message-content">${processedResponse}</div>
+      <div class="message-actions">
+        <button class="action-btn speak-btn" onclick="speakText(this)" title="Leer respuesta">
+          🔊
+        </button>
+        <button class="action-btn copy-btn" onclick="copyToClipboard(this)" title="Copiar respuesta">
+          📋
+        </button>
+        <button class="action-btn continue-btn" onclick="continueResponse(this)" title="Continuar respuesta">
+          ➕
+        </button>
+        <button class="action-btn retry-btn" onclick="retryLastMessage()" title="Reintentar consulta">
+          🔄
+        </button>
+      </div>
+    `;
+    
+    chatContent.appendChild(botDiv);
+    
+    // Scroll automático
+    chatContent.scrollTop = chatContent.scrollHeight;
+    
+    // Mostrar indicador de que es IA real
+    if (data.calidad === "premium_gemini") {
+      console.log("✅ Respuesta generada por Google Gemini AI");
+    }
+  })
+  .catch(error => {
+    // Remover indicador de carga
+    loadingDiv.remove();
+    
+    // Mostrar error
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "message bot error";
+    errorDiv.innerHTML = `
+      <div class="message-avatar">🤖</div>
+      <div class="message-content">
+        <span style="color: #f44336;">❌ Error al procesar tu consulta. Por favor, intenta nuevamente.</span>
+        <br><br>
+        <button class="action-btn retry-btn" onclick="retryLastMessage()" title="Reintentar consulta">
+          🔄 Reintentar
+        </button>
+      </div>
+    `;
+    chatContent.appendChild(errorDiv);
+    chatContent.scrollTop = chatContent.scrollHeight;
+    
+    console.error("Error:", error);
+  });
+}
+
+// Función auxiliar para copiar al portapapeles
+function copyToClipboard(button) {
+  const messageContent = button.closest('.message').querySelector('.message-content');
+  const textToCopy = messageContent.innerText || messageContent.textContent;
+  
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    // Cambiar icono temporalmente para mostrar éxito
+    const originalText = button.innerHTML;
+    button.innerHTML = '✅';
+    button.style.color = '#4caf50';
+    
+    setTimeout(() => {
+      button.innerHTML = originalText;
+      button.style.color = '';
+    }, 2000);
+  }).catch(err => {
+    console.error('Error al copiar:', err);
+    alert('No se pudo copiar el texto');
+  });
+}
+
 function sendMessage() {
   const input = document.getElementById("userInput");
   const chatbox = document.getElementById("chatbox");
@@ -277,14 +414,16 @@ function sendMessage() {
 
   if (!mensaje) return;
 
-  sendMessageToBot(mensaje, "general");
+  // Cuando el usuario escribe directamente, SIEMPRE usar GitHub Copilot directo
+  sendMessageToBot(mensaje, "chat_directo", null, "copilot");
 }
 
 function sendCategoryMessage(categoria, mensajePredefinido) {
   const input = document.getElementById("userInput");
   const mensaje = input.value.trim() || mensajePredefinido;
   
-  sendMessageToBot(mensaje, "categoria", categoria);
+  // Para categorías, usar el sistema de runnables (local)
+  sendMessageToBot(mensaje, "categoria", categoria, "local");
 }
 
 function showCategoryQuestions(categoria) {
@@ -739,7 +878,7 @@ function sendPredefinedAnswer(categoria, pregunta) {
   chatContent.scrollTop = chatContent.scrollHeight;
 }
 
-function sendMessageToBot(mensaje, tipo = "general", categoria = null) {
+function sendMessageToBot(mensaje, tipo = "general", categoria = null, aiMode = "local") {
   const input = document.getElementById("userInput");
   const chatContent = document.getElementById("chat-content");
 
@@ -769,12 +908,16 @@ function sendMessageToBot(mensaje, tipo = "general", categoria = null) {
   botDiv.className = "message bot";
   
   let loadingMessage = "Analizando consulta...";
-  if (tipo === "categoria" && categoria) {
+  if (tipo === "chat_directo") {
+    loadingMessage = "⚡ GitHub Copilot respondiendo...";
+  } else if (aiMode === "copilot") {
+    loadingMessage = "⚡ GitHub Copilot procesando...";
+  } else if (tipo === "categoria" && categoria) {
     loadingMessage = `Procesando consulta de ${categoria}...`;
   }
   
   botDiv.innerHTML = `
-    <div class="message-avatar">🤖</div>
+    <div class="message-avatar">${tipo === "chat_directo" || aiMode === "copilot" ? "⚡" : "🤖"}</div>
     <div class="message-content typing-indicator">
       <span class="typing-dots">
         <span></span>
@@ -800,7 +943,15 @@ function sendMessageToBot(mensaje, tipo = "general", categoria = null) {
     requestData.categoria = categoria;
   }
 
-  fetch("/responder", {
+  // Seleccionar el endpoint según el tipo de consulta
+  let endpoint = "/responder";
+  if (tipo === "chat_directo") {
+    endpoint = "/chat_directo";
+  } else if (aiMode === "copilot") {
+    endpoint = "/responder_copilot";
+  }
+
+  fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(requestData)
@@ -820,11 +971,20 @@ function sendMessageToBot(mensaje, tipo = "general", categoria = null) {
     if (data.categoria && data.categoria !== 'Otros') {
       categoryBadge = `<span class="category-badge">${data.categoria}</span>`;
     }
+
+    // Mostrar badge de calidad si es Copilot o Chat Directo
+    let qualityBadge = '';
+    if (tipo === "chat_directo") {
+      qualityBadge = `<span class="quality-badge">⚡ GitHub Copilot</span>`;
+    } else if (aiMode === "copilot") {
+      qualityBadge = `<span class="quality-badge">⚡ Premium Quality</span>`;
+    }
     
     botDiv.innerHTML = `
-      <div class="message-avatar">🤖</div>
+      <div class="message-avatar">${tipo === "chat_directo" || aiMode === "copilot" ? "⚡" : "🤖"}</div>
       <div class="message-content">
         ${categoryBadge}
+        ${qualityBadge}
         ${processedResponse}
         <div class="message-actions">
           <button class="speak-btn" onclick="speakText(this)" title="Escuchar respuesta">🔊</button>
