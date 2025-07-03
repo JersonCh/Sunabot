@@ -359,7 +359,7 @@ function sendMessage() {
     
     // Mostrar indicador de que es IA real
     if (data.calidad === "premium_gemini") {
-      console.log("✅ Respuesta generada por Google Gemini AI");
+      console.log("✅ Respuesta generada por IA");
     }
   })
   .catch(error => {
@@ -909,9 +909,9 @@ function sendMessageToBot(mensaje, tipo = "general", categoria = null, aiMode = 
   
   let loadingMessage = "Analizando consulta...";
   if (tipo === "chat_directo") {
-    loadingMessage = "⚡ GitHub Copilot respondiendo...";
+    loadingMessage = "⚡respondiendo...";
   } else if (aiMode === "copilot") {
-    loadingMessage = "⚡ GitHub Copilot procesando...";
+    loadingMessage = "⚡procesando...";
   } else if (tipo === "categoria" && categoria) {
     loadingMessage = `Procesando consulta de ${categoria}...`;
   }
@@ -975,7 +975,7 @@ function sendMessageToBot(mensaje, tipo = "general", categoria = null, aiMode = 
     // Mostrar badge de calidad si es Copilot o Chat Directo
     let qualityBadge = '';
     if (tipo === "chat_directo") {
-      qualityBadge = `<span class="quality-badge">⚡ GitHub Copilot</span>`;
+      //qualityBadge = `<span class="quality-badge"></span>`;
     } else if (aiMode === "copilot") {
       qualityBadge = `<span class="quality-badge">⚡ Premium Quality</span>`;
     }

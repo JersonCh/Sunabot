@@ -32,7 +32,7 @@ if GEMINI_AVAILABLE:
     gemini_api_key = os.getenv('GEMINI_API_KEY')
     
     # TEMPORAL: Para prueba rápida, descomenta la línea siguiente y agrega tu API key
-    gemini_api_key = "AIzaSyBVlqSGeScDUXTffhYQqy2Grqc5AJqJN9k"
+    gemini_api_key = "AIzaSyBQowQOmdUb1MaXeiHH5-UQhs6l3_tdZfU"
     
     if gemini_api_key:
         genai.configure(api_key=gemini_api_key)
@@ -113,41 +113,41 @@ def crear_sistema_categoria(categoria: str) -> str:
     
     sistemas = {
         "RUC": """### SUNABOT - Especialista RUC
-INSTRUCCIONES: Respuesta DIRECTA y CONCISA sobre RUC. Máximo 2-3 párrafos. Ve directo al grano.
+INSTRUCCIONES: Respuesta DIRECTA y CONCISA sobre RUC. NO incluyas mensajes de bienvenida. Ve directo al grano. Máximo 2-3 párrafos.
 
 LINKS ÚTILES PARA INCLUIR:
 - Consulta RUC: https://e-consultaruc.sunat.gob.pe/cl-ti-itmrconsruc/FrameCriterioBusquedaWeb.jsp
 - Registro RUC: https://ww1.sunat.gob.pe/a/html/contribuyente2/registro/adminforuc/registroruc/registroruc.html""",
         
         "Declaraciones": """### SUNABOT - Especialista Declaraciones  
-INSTRUCCIONES: Respuesta DIRECTA y CONCISA sobre declaraciones tributarias. Máximo 2-3 párrafos. Ve directo al grano.
+INSTRUCCIONES: Respuesta DIRECTA y CONCISA sobre declaraciones tributarias. NO incluyas mensajes de bienvenida. Ve directo al grano. Máximo 2-3 párrafos.
 
 LINKS ÚTILES PARA INCLUIR:
 - Cronograma obligaciones: https://ww3.sunat.gob.pe/cl-ti-itcronobligme/fvS01Alias
 - Portal SOL: https://www.sunat.gob.pe/sol.html""",
         
         "Facturación": """### SUNABOT - Especialista Facturación
-INSTRUCCIONES: Respuesta DIRECTA y CONCISA sobre facturación y comprobantes. Máximo 2-3 párrafos. Ve directo al grano.
+INSTRUCCIONES: Respuesta DIRECTA y CONCISA sobre facturación y comprobantes. NO incluyas mensajes de bienvenida. Ve directo al grano. Máximo 2-3 párrafos.
 
 LINKS ÚTILES PARA INCLUIR:
 - Verificar comprobantes: https://e-consulta.sunat.gob.pe/ol-ti-itconsvalicpe/ConsValiCpe.htm
 - Consulta libre CPE: https://ww1.sunat.gob.pe/ol-ti-itconsultaunificadalibre/consultaUnificadaLibre/consulta""",
         
         "Clave SOL": """### SUNABOT - Especialista Clave SOL
-INSTRUCCIONES: Respuesta DIRECTA y CONCISA sobre Clave SOL y servicios digitales. Máximo 2-3 párrafos. Ve directo al grano.
+INSTRUCCIONES: Respuesta DIRECTA y CONCISA sobre Clave SOL y servicios digitales. NO incluyas mensajes de bienvenida. Ve directo al grano. Máximo 2-3 párrafos.
 
 LINKS ÚTILES PARA INCLUIR:
 - Login Clave SOL: https://www.sunat.gob.pe/sol.html
 - Recuperar Clave SOL: https://www.gob.pe/7550-recuperar-la-clave-sol""",
         
         "Regímenes": """### SUNABOT - Especialista Regímenes
-INSTRUCCIONES: Respuesta DIRECTA y CONCISA sobre regímenes tributarios. Máximo 2-3 párrafos. Ve directo al grano.
+INSTRUCCIONES: Respuesta DIRECTA y CONCISA sobre regímenes tributarios. NO incluyas mensajes de bienvenida. Ve directo al grano. Máximo 2-3 párrafos.
 
 LINKS ÚTILES PARA INCLUIR:
 - Portal SOL: https://www.sunat.gob.pe/sol.html""",
         
         "Otros": """### SUNABOT - Especialista General
-INSTRUCCIONES: Respuesta DIRECTA y CONCISA sobre consultas tributarias. Máximo 2-3 párrafos. Ve directo al grano.
+INSTRUCCIONES: Respuesta DIRECTA y CONCISA sobre consultas tributarias. NO incluyas mensajes de bienvenida. Ve directo al grano. Máximo 2-3 párrafos.
 
 LINKS ÚTILES PARA INCLUIR:
 - Portal SOL: https://www.sunat.gob.pe/sol.html
@@ -164,19 +164,15 @@ def crear_prompt_cot(consulta: str) -> str:
 Consulta: "{consulta}"
 
 INSTRUCCIONES ESPECIALES:
+- Responde DIRECTAMENTE la consulta, sin mensajes de bienvenida
+- NO incluyas frases como "Hola! Bienvenido a SUNABOT" u otras presentaciones
+- Ve directo al punto de la consulta
 - Responde de forma DIRECTA y CONCISA
 - Máximo 2-3 párrafos por respuesta
-- Ve directo al punto sin rodeos
 - Usa **negritas** solo para lo más importante
 - Si hay pasos, máximo 3-4 puntos clave
-- INCLUYE LINKS ÚTILES cuando sea relevante:
-  * Consulta RUC: https://e-consultaruc.sunat.gob.pe/cl-ti-itmrconsruc/FrameCriterioBusquedaWeb.jsp
-  * Portal SOL: https://www.sunat.gob.pe/sol.html
-  * Verificar comprobantes: https://e-consulta.sunat.gob.pe/ol-ti-itconsvalicpe/ConsValiCpe.htm
-  * Cronograma: https://ww3.sunat.gob.pe/cl-ti-itcronobligme/fvS01Alias
-  * Recuperar Clave SOL: https://www.gob.pe/7550-recuperar-la-clave-sol
 
-### RESPUESTA CONCISA DE SUNABOT:"""
+### RESPUESTA DIRECTA:"""
 
 
 def detectar_categoria(mensaje: str) -> str:
@@ -593,35 +589,25 @@ Hola, recibí tu consulta: *"{mensaje}"*
 CONSULTA DEL USUARIO: "{mensaje}"
 
 INSTRUCCIONES ESPECÍFICAS:
-- Responde como experto en temas tributarios peruanos
+- Responde DIRECTAMENTE la consulta, sin mensajes de bienvenida
+- NO incluyas frases como "Hola! Bienvenido a SUNABOT" u otras presentaciones
+- Ve directo al punto de la consulta
 - Sé directo, claro y útil
-- Máximo 3-4 párrafos
+- Máximo 3 párrafos
 - Usa **negritas** para puntos importantes
-- Incluye enlaces oficiales de SUNAT cuando sea relevante
 - Si no conoces algo específico, sé honesto al respecto
 - Mantén un tono profesional pero amigable
 
-ENLACES OFICIALES PRINCIPALES:
-- Portal SOL: https://www.sunat.gob.pe/sol.html
-- Consulta RUC: https://e-consultaruc.sunat.gob.pe/cl-ti-itmrconsruc/FrameCriterioBusquedaWeb.jsp
-- Verificar comprobantes: https://e-consulta.sunat.gob.pe/ol-ti-itconsvalicpe/ConsValiCpe.htm
-- Cronograma: https://ww3.sunat.gob.pe/cl-ti-itcronobligme/fvS01Alias
-- Recuperar Clave SOL: https://www.gob.pe/7550-recuperar-la-clave-sol
 
-RESPUESTA DE SUNABOT:"""
+
+RESPUESTA DIRECTA:"""
 
         # Llamada real a Google Gemini
         response = gemini_model.generate_content(prompt_sunat)
         
         if response.text:
-            # Procesar la respuesta y agregar marca de IA
-            respuesta_procesada = f"""**🤖 Respuesta de Google Gemini**
-
-{response.text.strip()}
-
----
-*Respuesta generada por Google Gemini AI*"""
-            return respuesta_procesada
+            # Procesar la respuesta directamente sin marcas adicionales
+            return response.text.strip()
         else:
             return "Lo siento, no pude generar una respuesta en este momento. Por favor, intenta nuevamente."
             
